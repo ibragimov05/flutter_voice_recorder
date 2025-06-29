@@ -9,7 +9,7 @@ import 'package:record/record.dart';
 
 import '../../common/logger.dart';
 
-part '../controllers/voice_controller.dart';
+part '../controllers/voice_recorder_controller.dart';
 
 /// {@template voice_recorder}
 /// A widget that allows the user to record voice messages.
@@ -23,7 +23,7 @@ class VoiceRecorderScreen extends StatefulWidget {
 }
 
 /// State for the voice recorder screen.
-class _VoiceRecorderScreenState extends VoiceController {
+class _VoiceRecorderScreenState extends VoiceRecorderController {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Voice Recorder'), backgroundColor: Colors.blue),

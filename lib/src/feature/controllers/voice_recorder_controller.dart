@@ -3,9 +3,9 @@ part of '../screens/voice_recorder_screen.dart';
 /// {@template voice_controller}
 /// A controller for the voice recorder screen.
 /// {@endtemplate}
-abstract class VoiceController extends State<VoiceRecorderScreen> {
+abstract class VoiceRecorderController extends State<VoiceRecorderScreen> {
   /// {@macro voice_controller}
-  VoiceController();
+  VoiceRecorderController();
 
   /// Recorder instance.
   final AudioRecorder _recorder = AudioRecorder();
@@ -22,14 +22,19 @@ abstract class VoiceController extends State<VoiceRecorderScreen> {
   /// Whether the recordings are being fetched.
   bool _isFetchingRecordings = true;
 
+  /// Permission status.
+  PermissionStatus? _permissionStatus;
+
+  /// Directory instance.
+  Directory? _directory;
+
   /// Recordings in a set.
   final _recordings = <String>{};
 
   /// Method to fetch all recordings from the application documents directory.
   Future<void> _fetchAllRecordings() async {
     try {
-      final directory = await getApplicationDocumentsDirectory();
-      final files = directory.listSync();
+      final files = _directory?.listSync() ?? [];
 
       for (final file in files) {
         if (file.path.endsWith('.mp3')) _recordings.add(file.path);
@@ -44,13 +49,10 @@ abstract class VoiceController extends State<VoiceRecorderScreen> {
   /// Method to start recording.
   Future<void> _startRecording() async {
     try {
-      final permission = await Permission.microphone.request();
+      if (_permissionStatus?.isGranted != true) return;
 
-      if (!permission.isGranted) return;
-
-      final directory = await getApplicationDocumentsDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final path = '${directory.path}/recording_$timestamp.mp3';
+      final path = '${_directory?.path}/recording_$timestamp.mp3';
 
       await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: path);
 
@@ -96,11 +98,18 @@ abstract class VoiceController extends State<VoiceRecorderScreen> {
     }
   }
 
+  Future<void> _init() async {
+    _directory = await getApplicationDocumentsDirectory();
+    _permissionStatus = await Permission.microphone.request();
+  }
+
   /* #region lifecycle */
 
   @override
   void initState() {
     super.initState();
+
+    _init().ignore();
     _fetchAllRecordings().ignore();
   }
 
